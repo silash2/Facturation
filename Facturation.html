@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Facture — Fix My Kea</title>
+
+<style>
+  :root{
+    --accent:#0051ba; 
+    --muted:#666; 
+    --border:#8b2b2b;
+    font-family: Arial, sans-serif;
+  }
+
+  body{ background:#eee; padding:20px; margin:0; -webkit-print-color-adjust:exact; }
+  .sheet{
+    max-width: 950px; background:white; margin:auto; padding:25px;
+    border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.2);
+  }
+
+  /* HEADER blå */
+  .header-banner{
+    background:var(--accent);
+    color:white;
+    padding:12px 20px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:25px;
+  }
+  .header-banner h1{
+    margin:0;
+    font-size:32px;
+    letter-spacing:1px;
+  }
+
+  .seller, .client{
+    width: 45%; padding:10px; border:1px solid var(--border); border-radius:8px;
+    background:#f7f9fa;
+  }
+  .flex{ display:flex; justify-content:space-between; margin-bottom:20px; gap:20px; }
+
+  .editable{
+    border:1px dashed #ccc; padding:4px; min-height:18px; border-radius:4px;
+  }
+  .editable:focus{
+    outline:2px solid var(--accent); background:#eef7fb;
+  }
+
+  table{ width:100%; border-collapse:collapse; margin-top:15px; }
+  th, td{ border:1px solid var(--border); padding:8px; }
+  th{ background:white; color:#6b0f0f; }
+  td.right{ text-align:right; }
+
+  .btn{ padding:6px 12px; background:var(--accent); color:white; border:none; border-radius:6px; cursor:pointer; }
+  .btn.red{ background:#b62121; }
+  .btn.small{ padding:4px 8px; font-size:13px; }
+
+  /* TOTaux a droite */
+  .totals-box{
+    width:300px;
+    margin-left:auto;
+    margin-top:15px;
+    border:1px solid var(--border);
+    padding:10px;
+    border-radius:8px;
+    background:#fafafa;
+  }
+  .totals-box h3{
+    margin:5px 0;
+    text-align:right;
+  }
+
+  .right-note{
+    width:300px;
+    margin-left:auto;
+    font-size:14px;
+    margin-top:5px;
+  }
+
+  .center-note{
+    text-align:center;
+    font-size:12px;
+    color:#666;
+    margin-top:20px;
+  }
+
+  .footer{
+    text-align:center;
+    margin-top:40px;
+    font-size:14px;
+    color:#333;
+  }
+
+  @media print{
+    .actions, .btn-delete{ display:none; }
+    body{ background:white; padding:0; }
+    .sheet{ box-shadow:none; }
+  }
+</style>
+</head>
+
+<body>
+<div class="sheet">
+
+  <!-- HEADER BLUE -->
+  <div class="header-banner">
+    <h1>FACTURE</h1>
+  </div>
+
+  <div class="flex">
+    <div class="seller">
+      <strong>Fix My Kea</strong><br>
+      30 rue des bois<br>75019 Paris<br>FRANCE
+    </div>
+
+    <div class="client">
+      <strong>Client :</strong><br>
+      <div class="editable" contenteditable="true">Ludovic Cellier</div>
+      <div class="editable" contenteditable="true">27 Rue Mathieu Donnart</div>
+      <div class="editable" contenteditable="true">29200 Brest</div>
+      <div class="editable" contenteditable="true">TEL +33 2 57 52 50 57</div>
+      <br>
+
+      <strong>Facture n° :</strong> <span id="invoiceNumber"></span><br>
+      <strong>Date :</strong> <span id="invoiceDate"></span><br>
+     
+    </div>
+  </div>
+
+  <!-- TABLE EDITABLE -->
+  <table id="invoiceTable">
+    <thead>
+      <tr>
+        <th style="width:10%;">Réf.</th>
+        <th>Description</th>
+        <th style="width:8%;">Qté</th>
+        <th style="width:12%;">Prix unit.</th>
+        <th style="width:12%;">Montant</th>
+        <th style="width:4%;">X</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td contenteditable="true">#4996</td>
+        <td contenteditable="true">IKEA 128866 (2x) - Spare part</td>
+        <td contenteditable="true" class="qty">1</td>
+        <td contenteditable="true" class="price">25.00</td>
+        <td class="right total">25.00</td>
+        <td><button class="btn small red btn-delete" onclick="removeRow(this)">X</button></td>
+      </tr>
+
+      <tr>
+        <td contenteditable="true"></td>
+        <td contenteditable="true">IKEA 124336 (1x) - Spare part</td>
+        <td contenteditable="true" class="qty">1</td>
+        <td contenteditable="true" class="price">30.00</td>
+        <td class="right total">30.00</td>
+        <td><button class="btn small red btn-delete" onclick="removeRow(this)">X</button></td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <br>
+  <button class="btn" onclick="addRow()">+ Ajouter une ligne</button>
+
+  <!-- RIGHT SIDE LEGAL NOTE (TOP) -->
+  <div class="right-note">
+    <strong>Réserve de propriété :</strong><br>
+    (loi du 12/05/1980) la marchandise reste notre propriété jusqu'au paiement intégral.
+  </div>
+
+  <!-- TOTALS BLOCK (RIGHT) -->
+  <div class="totals-box">
+    <h3>Total : <span id="totalHT">192.50</span> €</h3>
+    <h3>Total TTC : <span id="grandTotal">192.50</span> €</h3>
+    <h3>Déjà réglé : <span id="paidTotal">192.50</span> €</h3>
+    <h3><strong>NET à payer : <span id="netToPay">0.00</span> €</strong></h3>
+  </div>
+
+  <!-- RIGHT SIDE LEGAL NOTE (BOTTOM) -->
+  <div class="right-note">
+    TVA non applicable, article 293 B du CGI.<br>
+    En votre aimable règlement.
+  </div>
+
+  <!-- CENTER NOTE -->
+  <div class="center-note">
+    Escompte pour réglement anticipé de 0% - Pénalité en cas de retard de paiement :  
+    1.5 fois le taux d'intérêt légal.
+  </div>
+
+  <!-- BOTTOM TEXT (NOT FOOTER) -->
+  <div class="footer">
+    Fix My Kea • 30 rue des bois • 75019 Paris
+  </div>
+
+  <div class="actions" style="margin-top:20px; text-align:center;">
+    <button class="btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
+  </div>
+
+</div>
+
+
+<script>
+function pad(n){ return n.toString().padStart(2,'0'); }
+
+window.onload = () => {
+  const now = new Date();
+
+  const yyyy = now.getFullYear();
+  const mm = pad(now.getMonth()+1);
+  const dd = pad(now.getDate());
+  const HH = pad(now.getHours());
+  const MM = pad(now.getMinutes());
+  const SS = pad(now.getSeconds());
+  const ms = now.getMilliseconds().toString().padStart(3,'0');
+
+  document.getElementById("invoiceNumber").textContent = `${yyyy}${mm}${dd}${HH}${MM}${SS}${ms}`;
+  document.getElementById("invoiceDate").textContent = `${dd}/${mm}/${yyyy}`;
+  document.getElementById("invoiceTime").textContent = `${HH}:${MM}:${SS}.${ms}`;
+
+  updateTotals();
+};
+
+// ADD ROW
+function addRow(){
+  const table = document.querySelector("#invoiceTable tbody");
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td contenteditable="true"></td>
+    <td contenteditable="true"></td>
+    <td contenteditable="true" class="qty">1</td>
+    <td contenteditable="true" class="price">0.00</td>
+    <td class="right total">0.00</td>
+    <td><button class="btn small red btn-delete" onclick="removeRow(this)">X</button></td>
+  `;
+  table.appendChild(row);
+}
+
+// DELETE ROW
+function removeRow(btn){
+  btn.parentNode.parentNode.remove();
+  updateTotals();
+}
+
+// UPDATE TOTALS
+document.addEventListener("input", e => {
+  if(e.target.classList.contains("qty") || e.target.classList.contains("price")){
+    updateTotals();
+  }
+});
+
+function updateTotals(){
+  let total = 0;
+
+  document.querySelectorAll("#invoiceTable tbody tr").forEach(row => {
+    const qty = parseFloat(row.querySelector(".qty")?.textContent || 0);
+    const price = parseFloat(row.querySelector(".price")?.textContent || 0);
+    const sum = qty * price;
+
+    row.querySelector(".total").textContent = sum.toFixed(2);
+
+    if(!isNaN(sum)) total += sum;
+  });
+
+  document.getElementById("totalHT").textContent = total.toFixed(2);
+  document.getElementById("grandTotal").textContent = total.toFixed(2);
+  document.getElementById("paidTotal").textContent = total.toFixed(2);
+  document.getElementById("netToPay").textContent = "0.00";
+}
+</script>
+
+</body>
+</html>
+
