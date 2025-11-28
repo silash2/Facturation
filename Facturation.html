@@ -19,6 +19,25 @@
     border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.2);
   }
 
+  /* PROFORMAT SECTION */
+  .proformat-box{
+    text-align:center;
+    margin-bottom:15px;
+  }
+  .proformat-btn{
+    background:#f4b400;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    font-size:18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+  }
+  .proformat-btn:hover{
+    background:#c79000;
+  }
+
   /* HEADER blå */
   .header-banner{
     background:var(--accent);
@@ -40,6 +59,7 @@
     width: 45%; padding:10px; border:1px solid var(--border); border-radius:8px;
     background:#f7f9fa;
   }
+
   .flex{ display:flex; justify-content:space-between; margin-bottom:20px; gap:20px; }
 
   .editable{
@@ -58,7 +78,6 @@
   .btn.red{ background:#b62121; }
   .btn.small{ padding:4px 8px; font-size:13px; }
 
-  /* TOTaux a droite */
   .totals-box{
     width:300px;
     margin-left:auto;
@@ -95,7 +114,7 @@
   }
 
   @media print{
-    .actions, .btn-delete{ display:none; }
+    .actions, .btn-delete, .proformat-box{ display:none; }
     body{ background:white; padding:0; }
     .sheet{ box-shadow:none; }
   }
@@ -105,17 +124,27 @@
 <body>
 <div class="sheet">
 
+  <!-- PROFORMAT BUTTON -->
+  <div class="proformat-box">
+    <button class="proformat-btn" onclick="setProformat()">PROFORMAT</button>
+  </div>
+
   <!-- HEADER BLUE -->
   <div class="header-banner">
-    <h1>FACTURE</h1>
+    <h1 contenteditable="true" class="editable">FACTURE</h1>
   </div>
 
   <div class="flex">
+
+    <!-- SELLER (EDITABLE) -->
     <div class="seller">
-      <strong>Fix My Kea</strong><br>
-      30 rue des bois<br>75019 Paris<br>FRANCE
+      <strong class="editable" contenteditable="true">Fix My Kea</strong><br>
+      <div class="editable" contenteditable="true">30 rue des bois</div>
+      <div class="editable" contenteditable="true">75019 Paris</div>
+      <div class="editable" contenteditable="true">FRANCE</div>
     </div>
 
+    <!-- CLIENT -->
     <div class="client">
       <strong>Client :</strong><br>
       <div class="editable" contenteditable="true">Ludovic Cellier</div>
@@ -126,11 +155,11 @@
 
       <strong>Facture n° :</strong> <span id="invoiceNumber"></span><br>
       <strong>Date :</strong> <span id="invoiceDate"></span><br>
-     
     </div>
+
   </div>
 
-  <!-- TABLE EDITABLE -->
+  <!-- TABLE -->
   <table id="invoiceTable">
     <thead>
       <tr>
@@ -168,33 +197,27 @@
   <br>
   <button class="btn" onclick="addRow()">+ Ajouter une ligne</button>
 
-  <!-- RIGHT SIDE LEGAL NOTE (TOP) -->
   <div class="right-note">
     <strong>Réserve de propriété :</strong><br>
     (loi du 12/05/1980) la marchandise reste notre propriété jusqu'au paiement intégral.
   </div>
 
-  <!-- TOTALS BLOCK (RIGHT) -->
   <div class="totals-box">
-    <h3>Total : <span id="totalHT">192.50</span> €</h3>
-    <h3>Total TTC : <span id="grandTotal">192.50</span> €</h3>
-    <h3>Déjà réglé : <span id="paidTotal">192.50</span> €</h3>
+    <h3>Total : <span id="totalHT">0.00</span> €</h3>
+    <h3>Total TTC : <span id="grandTotal">0.00</span> €</h3>
+    <h3>Déjà réglé : <span id="paidTotal" class="editable" contenteditable="true">0.00</span> €</h3>
     <h3><strong>NET à payer : <span id="netToPay">0.00</span> €</strong></h3>
   </div>
 
-  <!-- RIGHT SIDE LEGAL NOTE (BOTTOM) -->
   <div class="right-note">
     TVA non applicable, article 293 B du CGI.<br>
     En votre aimable règlement.
   </div>
 
-  <!-- CENTER NOTE -->
   <div class="center-note">
-    Escompte pour réglement anticipé de 0% - Pénalité en cas de retard de paiement :  
-    1.5 fois le taux d'intérêt légal.
+    Escompte pour réglement anticipé de 0% - Pénalité en cas de retard : 1.5x le taux légal.
   </div>
 
-  <!-- BOTTOM TEXT (NOT FOOTER) -->
   <div class="footer">
     Fix My Kea • 30 rue des bois • 75019 Paris
   </div>
@@ -222,10 +245,18 @@ window.onload = () => {
 
   document.getElementById("invoiceNumber").textContent = `${yyyy}${mm}${dd}${HH}${MM}${SS}${ms}`;
   document.getElementById("invoiceDate").textContent = `${dd}/${mm}/${yyyy}`;
-  document.getElementById("invoiceTime").textContent = `${HH}:${MM}:${SS}.${ms}`;
 
   updateTotals();
 };
+
+// PROFORMAT BUTTON FUNCTION
+function setProformat(){
+  document.querySelector("h1").textContent = "PROFORMAT";
+
+  document.getElementById("paidTotal").textContent = "0.00";
+
+  updateTotals();
+}
 
 // ADD ROW
 function addRow(){
@@ -240,6 +271,7 @@ function addRow(){
     <td><button class="btn small red btn-delete" onclick="removeRow(this)">X</button></td>
   `;
   table.appendChild(row);
+  updateTotals();
 }
 
 // DELETE ROW
@@ -250,7 +282,7 @@ function removeRow(btn){
 
 // UPDATE TOTALS
 document.addEventListener("input", e => {
-  if(e.target.classList.contains("qty") || e.target.classList.contains("price")){
+  if(e.target.classList.contains("qty") || e.target.classList.contains("price") || e.target.id === "paidTotal"){
     updateTotals();
   }
 });
@@ -270,8 +302,11 @@ function updateTotals(){
 
   document.getElementById("totalHT").textContent = total.toFixed(2);
   document.getElementById("grandTotal").textContent = total.toFixed(2);
-  document.getElementById("paidTotal").textContent = total.toFixed(2);
-  document.getElementById("netToPay").textContent = "0.00";
+
+  let paid = parseFloat(document.getElementById("paidTotal").textContent) || 0;
+  let net = total - paid;
+
+  document.getElementById("netToPay").textContent = net.toFixed(2);
 }
 </script>
 
